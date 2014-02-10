@@ -25,11 +25,12 @@ print "Jitter %dms" % (JITTER * 1000)
 print "Loss   %d%%" % (LOSS * 100)
 
 while True:
-    if queue.empty():
-        sock.settimeout(None)
-        item = None
-    else:
-        while True:
+    while True:
+        if queue.empty():
+            sock.settimeout(None)
+            item = None
+            break;
+        else:
             item = queue.get()
             delta = item[0] - time()
             if delta > 0:
