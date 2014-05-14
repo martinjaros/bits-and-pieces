@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then echo "usage: voicecall <IPADDRESS>"; exit; fi
+
+HOST=$1
+PORT=5004
+
+gst-launch-1.0 \
+alsasrc ! opusenc ! rtpopuspay ! udpsink host=$HOST port=$PORT sync=false async=false \
+udpsrc port=$PORT caps="application/x-rtp,payload=96" ! rtpjitterbuffer ! rtpopusdepay ! opusdec ! alsasink sync=false async=false
