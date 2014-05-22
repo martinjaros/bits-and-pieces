@@ -15,7 +15,6 @@ LOSS = 0.1
 sock = socket(AF_INET, SOCK_DGRAM)
 sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 sock.bind(LOCAL)
-sock.connect(HOST)
 queue = PriorityQueue()
 
 print "Local  %s:%d" % (LOCAL[0], LOCAL[1])
@@ -37,7 +36,7 @@ while True:
                 sock.settimeout(delta)
                 break;
             else:
-                sock.send(item[1])
+                sock.sendto(item[1], HOST)
     try:
         data = sock.recv(1024)
         if not random() < LOSS:
@@ -45,4 +44,4 @@ while True:
         if item:
             queue.put(item)
     except timeout:
-        sock.send(item[1])
+        sock.sendto(item[1], HOST)
