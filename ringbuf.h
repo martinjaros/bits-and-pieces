@@ -1,18 +1,26 @@
 
 #include <stdint.h>
-#include <unistd.h>
 
-#define RINGBUF_SIZE 0xFF
+#define RINGBUF_SIZE 256
 
 struct ringbuf
 {
     uint8_t data[RINGBUF_SIZE];
-    size_t start, end;
+    uint16_t start, end;
 };
 
-void ringbuf_init(struct ringbuf *buf);
+struct buffer
+{
+    uint8_t *data;
+    uint16_t len;
+};
 
-size_t ringbuf_write(struct ringbuf *buf, uint8_t *data, size_t len);
+/* Initializes the ring buffer structure */
+void ringbuf_init(struct ringbuf *rbuf);
 
-size_t ringbuf_read(struct ringbuf *buf, uint8_t *data, size_t len);
+/* Writes the buffer into the ring buffer, returns 0 if there is not enough space */
+int ringbuf_write(struct ringbuf *rbuf, struct buffer *buf);
+
+/* Reads the first buffer from the ring buffer, returns 0 if there are no buffers */
+int ringbuf_read(struct ringbuf *rbuf, struct buffer *buf);
 

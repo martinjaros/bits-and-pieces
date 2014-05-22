@@ -1,33 +1,51 @@
 
 #include "ringbuf.h"
 
-void ringbuf_init(struct ringbuf *buf)
+void ringbuf_init(struct ringbuf *rbuf)
 {
-    buf->start = 0;
-    buf->end = 0;
+    rbuf->start = 0;
+    rbuf->end = 0;
 }
 
-size_t ringbuf_write(struct ringbuf *buf, uint8_t *data, size_t len)
+int ringbuf_write(struct ringbuf *rbuf, struct buffer *buf)
 {
-    int i;
-    for(i = 0; len--; i++)
+    // Check if there is enough free space
+    if((rbuf->start > rbuf->end ? rbuf->start - rbuf->end : RINGBUF_SIZE - rbuf->end + rbuf->start) < buf->len + 3)
+        return 0;
+
+    // Write length
+    rbuf->data[rbuf->end++] = (buf->len & 0x00FF);
+    rbuf->data[rbuf->end++] = (buf->len & 0xFF00) >> 8;
+
+    // Copy data
+    uint16_t i;
+    for(i = 0; i < buf->len; i++)
     {
-        size_t tmp = buf->end + 1 < RINGBUF_SIZE ? buf->end + 1 : 0;
-        if(buf->start == tmp) break;
-        buf->data[buf->end] = data[i];
-        buf->end = tmp;
+        rbuf->data[rbuf->end++] = buf->data[i];
+        if(rbuf->end == RINGBUF_SIZE) rbuf->end = 0;
     }
-    return i;
+
+    return 1;
 }
 
-size_t ringbuf_read(struct ringbuf *buf, uint8_t *data, size_t len)
+int ringbuf_read(struct ringbuf *rbuf, struct buffer *buf)
 {
-    int i;
-    for(i = 0; (buf->start != buf->end) && len--; i++)
+    // Check if there is any data
+    if(rbuf->start == rbuf->end)
+        return 0;
+
+    // Read length
+    buf->len  = rbuf->data[rbuf->start++];
+    buf->len |= rbuf->data[rbuf->start++] << 8;
+
+    // Copy data
+    uint16_t i;
+    for(i = 0; i < buf->len; i++)
     {
-        data[i] = buf->data[buf->start];
-        buf->start = buf->start + 1 < RINGBUF_SIZE ? buf->start + 1 : 0;
+        buf->data[i] = rbuf->data[rbuf->start++];
+        if(rbuf->start == RINGBUF_SIZE) rbuf->start = 0;
     }
-    return i;
+
+    return 1;
 }
 
