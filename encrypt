@@ -1,0 +1,2 @@
+#!/bin/sh
+tar czf - "$@" | openssl aes-256-cbc > ${PWD##*/}.aes

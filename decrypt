@@ -1,0 +1,2 @@
+#!/bin/sh
+for arg in "$@"; do openssl aes-256-cbc -d -in $arg | tar xzf -; done
