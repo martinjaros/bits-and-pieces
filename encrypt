@@ -1,2 +1,16 @@
-#!/bin/sh
-tar czf - "$@" | openssl aes-256-cbc > ${PWD##*/}.aes
+#!/bin/bash
+
+if [ -z $1 ]; then echo "No input"; exit; fi
+IFS=
+
+read -rsp "Password: " psw1; echo
+if [ -z "$psw1" ]; then echo "No password"; exit; fi
+
+read -rsp "Verify password: " psw2; echo
+if [ "$psw1" != "$psw2" ]; then echo "Password mismatch"; exit; fi
+
+tar czf - "$@" | openssl aes-256-cbc -k "$psw1" -out temp~
+hmac=$(openssl sha1 -hmac "$psw1" temp~ | awk '{print $2;}')
+
+mv temp~ $hmac
+echo "HMAC-SHA1= $hmac"

@@ -1,2 +1,9 @@
-#!/bin/sh
-for arg in "$@"; do openssl aes-256-cbc -d -in $arg | tar xzf -; done
+#!/bin/bash
+
+if [ -z $1 ]; then echo "No input"; exit; fi
+IFS=
+
+read -rsp "Password: " psw; echo
+if [ "HMAC-SHA1($1)= $1" != "$(openssl sha1 -hmac "$psw" $1)" ]; then echo "File corrupted"; exit; fi
+
+openssl aes-256-cbc -k "$psw" -d -in $1 | tar xzvf -
